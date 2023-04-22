@@ -1,0 +1,36 @@
+Word length statistics:
+Min word length: 1
+Max word length: 15
+Average word length: 5.580645161290323
+
+Sentence length statistics:
+Min sentence length: 3
+Max sentence length: 412
+Average sentence length: 57.69565217391305
+
+Words count top25 statistics:
+данко: 16
+людей: 13
+люди: 11
+лес: 9
+сердце: 8
+леса: 7
+стали: 7
+тогда: 6
+повел: 6
+шли: 6
+там: 5
+болота: 5
+потому: 5
+него: 5
+еще: 5
+вокруг: 5
+людям: 5
+путь: 5
+вы: 5
+один: 4
+за: 4
+деревья: 4
+тьмы: 4
+оно: 4
+к: 4

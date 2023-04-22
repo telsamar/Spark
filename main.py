@@ -15,7 +15,11 @@ def process_line(line):
 def filter_stop_words(stop_words):
     return lambda word: word not in stop_words
 
-# Функция для вычисления статистики длины слов
+def save_results_to_file(results, file_path):
+    with open(file_path, "w") as file:
+        for line in results:
+            file.write(f"{line}\n")
+
 def word_length_stats(words):
     word_lengths = words.map(lambda word: len(word))
     total_words = word_lengths.count()
@@ -25,11 +29,12 @@ def word_length_stats(words):
     max_length = word_lengths.max()
     avg_length = total_word_length / total_words
 
-    print(f"Min word length: {min_length}")
-    print(f"Max word length: {max_length}")
-    print(f"Average word length: {avg_length}")
+    return [
+        f"Min word length: {min_length}",
+        f"Max word length: {max_length}",
+        f"Average word length: {avg_length}"
+    ]
 
-# Функция для вычисления статистики длины предложений
 def sentence_length_stats(text_file):
     sentences = text_file.map(lambda line: len(process_line(line)))
     total_sentences = sentences.count()
@@ -39,49 +44,50 @@ def sentence_length_stats(text_file):
     max_length = sentences.max()
     avg_length = total_sentence_length / total_sentences
 
-    print(f"Min sentence length: {min_length}")
-    print(f"Max sentence length: {max_length}")
-    print(f"Average sentence length: {avg_length}")
+    return [
+        f"Min sentence length: {min_length}",
+        f"Max sentence length: {max_length}",
+        f"Average sentence length: {avg_length}"
+    ]
 
 # Основная функция для анализа текста
-def word_count_top10(file_path, stop_words_file):
-    # Загрузка стоп-слов
+def word_count_top25(file_path, stop_words_file):
     stop_words = load_stop_words(stop_words_file)
 
-    # Настройка Spark
     conf = SparkConf().setAppName("WordCount").setMaster("local")
     sc = SparkContext(conf=conf)
 
-    # Чтение текстового файла
     text_file = sc.textFile(file_path)
-
-    # Преобразование строк в слова
     words = text_file.flatMap(process_line)
 
-    # Фильтрация стоп-слов
     filtered_words = words.filter(filter_stop_words(stop_words))
 
-    print("\nWord length statistics:")
-    word_length_stats(filtered_words)
+    results = []
 
-    print("\nSentence length statistics:")
-    sentence_length_stats(text_file)
+    results.append("Word length statistics:")
+    word_length_stats_result = word_length_stats(filtered_words)
+    results.extend(word_length_stats_result)
 
-    # Подсчет частоты каждого слова
+    results.append("\nSentence length statistics:")
+    sentence_length_stats_result = sentence_length_stats(text_file)
+    results.extend(sentence_length_stats_result)
+
     word_counts = filtered_words.countByValue()
-
-    # Сортировка элементов словаря по значению count в порядке убывания
     sorted_word_counts = sorted(word_counts.items(), key=lambda item: item[1], reverse=True)
 
-    print("\nTop 10 words:")
-    for word, count in sorted_word_counts[:10]:
-        print(f"{word}: {count}")
+    top25_words = []
+    for word, count in sorted_word_counts[:25]:
+        top25_words.append(f"{word}: {count}")
 
-    # Остановка Spark контекста
+    results.append("\nWords count top25 statistics:")
+    results.extend(top25_words)
+
+    save_results_to_file(results, "results/result.txt")
+
     sc.stop()
 
 # Запуск программы
 if __name__ == "__main__":
     file_path = "example.txt"
     stop_words_file = "stop_words.txt"
-    word_count_top10(file_path, stop_words_file)
+    word_count_top25(file_path, stop_words_file)
